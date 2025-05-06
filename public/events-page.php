@@ -1,6 +1,6 @@
 <?php
 function sem_events_page() {
-    $events = get_posts(array('post_type' => 'post', 'category_name' => 'event'));
+    $events = get_posts(array('post_type' => 'post', 'posts_per_page' => -1));
 
     $output = '<h2>Aankomende Events</h2>';
     foreach($events as $event) {
