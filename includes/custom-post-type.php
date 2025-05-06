@@ -7,6 +7,8 @@ function sem_register_event_post_type() {
         ),
         'public' => true,
         'has_archive' => true,
+        'show_in_menu' => true,
+        'menu_icon' => 'dashicons-calendar-alt',
         'show_in_rest' => true,
         'supports' => array('title', 'editor', 'custom-fields')
     ));
