@@ -1,32 +1,18 @@
 <?php
 function sem_events_page() {
-    $events = get_posts(array(
-        'post_type' => 'school_event',
-        'posts_per_page' => -1,
-        'orderby' => 'date',
-        'order' => 'ASC'
-    ));
-    
-    $output = '<h2>Aankomende School Events</h2>';
+    $events = get_posts(array('post_type' => 'post', 'category_name' => 'event'));
 
-    if($events){
-        foreach($events as $event) {
-            $output .= '<div class="event">';
-            $output .= '<h3>' . $event->post_title . '</h3>';
-            $output .= '<div>' . apply_filters('the_content', $event->post_content) . '</div>';
-            $output .= '</div><hr>';
-        }
-    } else {
-        $output .= '<p>Geen aankomende events gevonden.</p>';
+    $output = '<h2>Aankomende Events</h2>';
+    foreach($events as $event) {
+        $output .= '<h3>' . $event->post_title . '</h3>';
+        $output .= '<div>' . $event->post_content . '</div>';
+        $output .= '<button onclick="aanmelden(' . $event->ID . ')">Aanmelden</button><hr>';
     }
 
-    // Magister check-knop
-    $output .= '<button onclick="checkMagister()">Check jouw Magister-status</button>';
-    $output .= '<div id="magister-status"></div>';
-
+    $output .= '<div id="response"></div>';
     $output .= '
     <script>
-    function checkMagister() {
+    function aanmelden(eventId) {
         fetch("https://jouw-magister-api-endpoint/check", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
@@ -34,10 +20,24 @@ function sem_events_page() {
         })
         .then(r => r.json())
         .then(data => {
-            document.getElementById("magister-status").innerHTML = 
-                "<p>Status: " + data.status + "</p>";
-        })
-        .catch(err => console.error(err));
+            if(data.status === "allowed"){
+                fetch("/wp-json/sem/v1/register/", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({
+                        event_id: eventId,
+                        student_name: data.name,
+                        student_number: data.student_number
+                    })
+                })
+                .then(r => r.json())
+                .then(res => {
+                    document.getElementById("response").innerHTML = res.status;
+                });
+            } else {
+                document.getElementById("response").innerHTML = "Je mag niet meedoen.";
+            }
+        });
     }
     </script>
     ';
